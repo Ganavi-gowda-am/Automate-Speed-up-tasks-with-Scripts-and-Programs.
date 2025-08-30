@@ -1,0 +1,35 @@
+from pyltspice import SimRunner, SpiceEditor
+import matplotlib.pyplot as plt
+
+# Point to your LTspice netlist
+circuit = "MyFilter.net"
+
+# Initialize LTspice runner
+runner = SimRunner(output_folder="sim_results")
+
+# Load circuit
+editor = SpiceEditor(circuit)
+
+# Sweep capacitor values
+C_values = [0.1e-6, 0.159e-6, 0.22e-6, 0.33e-6]
+results = {}
+
+for C in C_values:
+    editor.set_component_value("C1", f"{C}")
+    sim = runner.run(editor)
+    
+    # Extract frequency response
+    freq = sim.frequency
+    vout = abs(sim.data['V(out)'])
+    results[C] = (freq, vout)
+
+# Plot results
+for C, (f, vout) in results.items():
+    plt.semilogx(f, 20*np.log10(vout), label=f"C={C:.2e} F")
+
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Gain (dB)")
+plt.title("RC Low-Pass Filter Response")
+plt.legend()
+plt.grid(True)
+plt.show()
